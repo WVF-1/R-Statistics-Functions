@@ -1,0 +1,116 @@
+---
+title: "Best_Span_Selection"
+author: "William V. Fullerton"
+date: "2025-02-06"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Best Span or DF selection function
+```{r}
+BestSpan <- function(x, y, training_data, testing_data, type){
+  
+}
+```
+
+```{r}
+set.seed(412)
+n <- 200
+
+X <- runif(n, min = 1, max = 10)
+e <- rnorm(n, mean = 0, sd = 3)
+
+f <- function(x){
+  -5*cos(1.1*x)
+}
+
+Y <- f(X) + e
+dft <- data.frame(X,Y)
+s <- sample(c(1:n), 0.8*n, replace = FALSE)
+train <- dft[s,]
+test <- dft[-s,]
+
+#Checks for span and df
+span <- seq(1,0.1, -0.05)
+span
+
+MSE <- numeric(length(span))
+
+for (i in 1:19){
+  loess <- loess(Y ~ X, data = train, span = span[i])
+  MSE[i] <- mean((test$Y - predict(loess, test$X))^2)
+}
+
+ldf <- data.frame(span, MSE)
+ldf
+
+df <- seq(100,10, by = -5)
+df 
+
+for (i in 1:19) {
+  smooth <- smooth.spline(x = train[,1], y = train[,2], df = df[i])
+  MSE[i] <- mean((test$Y - predict(smooth, test$X)$y)^2)
+}
+
+sdf <- data.frame(df, MSE)
+sdf
+
+```
+
+```{r}
+ldf
+sdf
+
+ldf$span[ldf$MSE == min(ldf$MSE)]
+sdf$df[sdf$MSE == min(sdf$MSE)]
+```
+
+#Testing area
+```{r}
+BestSpan(x = X, y = Y, training_data = train, testing_data = test, type = "smooth_spline")
+```
+
+```{r}
+# Function to calculate MSE using loess
+calculate_loess_mse <- function(train, test, span_seq) {
+  MSE <- numeric(length(span_seq))
+  
+  for (i in seq_along(span_seq)) {
+    loess_model <- loess(Y ~ X, data = train, span = span_seq[i])
+    MSE[i] <- mean((test$Y - predict(loess_model, test$X))^2)
+  }
+  
+  dtf <- data.frame(span = span_seq, MSE = MSE)
+  return(dtf$span[dtf$MSE == min(dtf$MSE)])
+}
+
+# Function to calculate MSE using smooth.spline
+calculate_smooth_spline_mse <- function(train, test, df_seq) {
+  MSE <- numeric(length(df_seq))
+  
+  for (i in seq_along(df_seq)) {
+    smooth_model <- smooth.spline(x = train[, 1], y = train[, 2], df = df_seq[i])
+    MSE[i] <- mean((test$Y - predict(smooth_model, test$X)$y)^2)
+  }
+  dsf <- data.frame(df = df_seq, MSE = MSE)
+  return(dsf$df[dsf$MSE == min(dsf$MSE)])
+}
+```
+
+```{r}
+calculate_loess_mse(train, test, span_seq = seq(1,0.1, -0.05))
+calculate_smooth_spline_mse(train, test, df_seq = seq(100,10, by = -5))
+```
+
+```{r}
+credit <- Credit[, -1]
+train <- credit[c(1:320),c(1,2)]
+test <- credit[c(321:400),c(1,2)]
+
+calculate_loess_mse(train, test, span_seq = seq(1,0.1, -0.05))
+Best_Loess_Span(data = dft, x = "X", y = "Y", span_seq = seq(1,0.1, -0.05))
+```
+
